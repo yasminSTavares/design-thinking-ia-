@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Design Thinking com IA</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f0f4f8;
+    }
+    h1 {
+      text-align: center;
+    }
+    .phase {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    textarea {
+      width: 100%;
+      height: 80px;
+      margin-top: 10px;
+    }
+    button {
+      margin-top: 10px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .response {
+      background: #e0f7fa;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Design Thinking com IA</h1>
+  <div id="app"></div>
+
+  <script>
+    const phases = ["Empatia", "Definição", "Ideação", "Prototipagem", "Teste"];
+    const app = document.getElementById("app");
+
+    phases.forEach(phase => {
+      const container = document.createElement("div");
+      container.className = "phase";
+
+      const title = document.createElement("h2");
+      title.textContent = phase;
+      container.appendChild(title);
+
+      const textarea = document.createElement("textarea");
+      container.appendChild(textarea);
+
+      const button = document.createElement("button");
+      button.textContent = "Sugestão da IA";
+      container.appendChild(button);
+
+      const response = document.createElement("div");
+      response.className = "response";
+      container.appendChild(response);
+
+      button.onclick = async () => {
+        const prompt = `A fase é ${phase}. O usuário escreveu: "${textarea.value}". Sugira ideias.`;
+
+        response.textContent = "Carregando sugestão...";
+
+        try {
+          const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": "bearer: 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",
+              "Content-Type": "application/json",
+              "HTTP-Referer": "https://openrouter.ai/"
+            },
+            body: JSON.stringify({
+              model: "mistralai/mistral-7b-instruct",
+              messages: [
+                { role: "user", content: prompt }
+              ]
+            })
+          });
+
+          const data = await res.json();
+          response.textContent = data.choices?.[0]?.message?.content || "Sem resposta.";
+        } catch (e) {
+          response.textContent = "Erro ao buscar sugestão da IA.";
+        }
+      };
+
+      app.appendChild(container);
+    });
+  </script>
+</body>
+</html>
